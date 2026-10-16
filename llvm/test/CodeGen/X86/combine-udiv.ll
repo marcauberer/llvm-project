@@ -815,3 +815,12 @@ define <4 x i32> @vector_div_leading_zeros(<4 x i32> %x) {
   %b = udiv <4 x i32> %a, <i32 7, i32 7, i32 7, i32 7>
   ret <4 x i32> %b
 }
+
+; Lane 0 is (x * 0) udiv 1 == 0. The udiv-by-1 lanes get undef magic/shift
+; amounts and are selected from the dividend; make sure the undef shift amount
+; doesn't make lane 0 "known zero" in the quotient and drop the select lane.
+define <4 x i32> @pr232598(<4 x i32> %x) {
+  %mul = mul <4 x i32> %x, <i32 0, i32 2, i32 15, i32 5>
+  %div = udiv <4 x i32> %mul, <i32 1, i32 255, i32 1, i32 1048576>
+  ret <4 x i32> %div
+}

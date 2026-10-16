@@ -4067,6 +4067,11 @@ bool TargetLowering::SimplifyDemandedVectorElts(
       return true;
 
     KnownZero = ZeroLHS;
+    // A shift by an undef amount may be folded to undef (it could shift by the
+    // bitwidth), so a zero LHS element doesn't guarantee a zero result there.
+    // Rotates of zero are always zero.
+    if (Op.getOpcode() != ISD::ROTL && Op.getOpcode() != ISD::ROTR)
+      KnownZero &= ~UndefRHS;
     KnownUndef = UndefLHS & UndefRHS; // TODO: use getKnownUndefForVectorBinop?
 
     // Attempt to avoid multi-use ops if we don't need anything from them.
